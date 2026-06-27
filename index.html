@@ -886,6 +886,29 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
+/* ── GitHub txt 자동 로딩 ── */
+const GITHUB_TXT_URL =
+  'https://raw.githubusercontent.com/jbkim7710-star/Nyong_Recipe_10billion/main/menu.txt';
+
+async function loadFromGitHub() {
+  showOk('📡 메뉴 불러오는 중…');
+  try {
+    const res = await fetch(GITHUB_TXT_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if (!text.trim()) throw new Error('파일이 비어 있습니다.');
+    const parsed = parseManualText(text);
+    if (parsed.length === 0) throw new Error('메뉴를 찾지 못했습니다. txt 형식을 확인해 주세요.');
+    menus = [];
+    mergeMenus(parsed);
+    showOk(`✅ ${parsed.length}개 메뉴를 불러왔습니다.`);
+    renderMenuList();
+  } catch (e) {
+    okMsg.classList.remove('show');
+    showError('GitHub에서 메뉴를 불러오지 못했습니다: ' + e.message);
+  }
+}
+
 /* ── 새로고침 버튼 → GitHub에서 메뉴 다시 불러오기 ── */
 $('reloadBtn').addEventListener('click', () => {
   loadFromGitHub();
@@ -898,33 +921,6 @@ $('themeBtn').addEventListener('click', () => {
 });
 
 renderMenuList();
-
-/* ── GitHub txt 자동 로딩 ──
-   앱 접속 시 GitHub Raw URL에서 뇽이레시피.txt를 fetch해서
-   메뉴를 자동으로 불러옴. txt 파일만 업데이트하면 앱에 자동 반영. ── */
-const GITHUB_TXT_URL =
-  'https://raw.githubusercontent.com/jbkim7710-star/Nyong_Recipe_10billion/main/menu.txt';
-
-async function loadFromGitHub() {
-  showOk('📡 메뉴 불러오는 중…');
-  try {
-    const res = await fetch(GITHUB_TXT_URL + '?t=' + Date.now()); // 캐시 방지
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    if (!text.trim()) throw new Error('파일이 비어 있습니다.');
-
-    const parsed = parseManualText(text);
-    if (parsed.length === 0) throw new Error('메뉴를 찾지 못했습니다. txt 형식을 확인해 주세요.');
-
-    menus = [];
-    mergeMenus(parsed);
-    showOk(`✅ ${parsed.length}개 메뉴를 불러왔습니다.`);
-    renderMenuList();
-  } catch (e) {
-    okMsg.classList.remove('show');
-    showError('GitHub에서 메뉴를 불러오지 못했습니다: ' + e.message);
-  }
-}
 
 /* 앱 시작 시 자동 로딩 */
 loadFromGitHub();
